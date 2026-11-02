@@ -577,6 +577,7 @@ def apply_throttle(engine_iredapd,
         _period = int(ts.get('period', 0))
         _init_time = int(ts.get('init_time', 0))
         _last_time = int(ts.get('last_time', 0))
+        _last_notify_time = int(ts.get('last_notify_time', 0))
 
         if _period and (_init_time > 0) and now > (_init_time + _period):
             # tracking record expired
