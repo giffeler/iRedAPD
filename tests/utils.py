@@ -2,6 +2,7 @@ import socket
 import web
 
 import settings
+from libs.sql_transport import web_transport
 from libs.logger import logger
 from libs import MAILLIST_POLICY_PUBLIC
 from tests import tdata
@@ -23,11 +24,10 @@ def get_db_conn(db_name):
     try:
         conn = web.database(
             dbn=dbn,
-            host=settings.__dict__[db_name + '_db_server'],
-            port=int(settings.__dict__[db_name + '_db_port']),
             db=settings.__dict__[db_name + '_db_name'],
             user=settings.__dict__[db_name + '_db_user'],
             pw=settings.__dict__[db_name + '_db_password'],
+            **web_transport(settings, db_name, dbn),
         )
 
         return conn

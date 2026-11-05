@@ -285,3 +285,8 @@ NOTIFICATION_SENDER_NAME = 'No Reply'
 #
 # Query and return how many rows each time for delete.
 CLEANUP_QUERY_SIZE_LIMIT = 1000
+
+# Optional MySQL Unix sockets. Empty values preserve TCP behavior.
+vmail_db_socket = ''
+amavisd_db_socket = ''
+iredapd_db_socket = ''

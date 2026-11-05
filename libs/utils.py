@@ -20,6 +20,8 @@ from web import sqlquote
 import sqlalchemy
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
+from sqlalchemy.engine.url import URL
+from libs.sql_transport import mysql_socket
 
 # Default SQLAlchemy version: 1.4.x.
 __sqlalchemy_version = 1
@@ -275,36 +277,46 @@ def create_db_engine(db_name):
 
     _user = settings.__dict__[db_name + '_db_user']
     _pw = settings.__dict__[db_name + '_db_password']
-    _server = settings.__dict__[db_name + '_db_server']
-    _port = settings.__dict__[db_name + '_db_port']
     _name = settings.__dict__[db_name + '_db_name']
-    # New in v6.0, supports SSL connection.
+    # TCP TLS settings are unchanged; Unix sockets use local filesystem access.
     _use_ssl = settings.__dict__.get(db_name + '_db_use_ssl', False)
 
     try:
-        _port = int(_port)
-    except:
-        if dbn == 'postgresql':
-            _port = 5432
+        socket_path = mysql_socket(
+            settings, db_name, 'postgres' if settings.backend == 'pgsql' else 'mysql')
+        connect_options = {}
+        if socket_path:
+            if not all([_user, _pw, _name]):
+                return None
+            uri = getattr(URL, 'create', URL)(
+                dbn, username=_user, password=_pw, database=_name,
+                query={'charset': 'utf8'})
+            connect_options['connect_args'] = {'unix_socket': socket_path}
         else:
-            _port = 3306
+            _server = settings.__dict__[db_name + '_db_server']
+            _port = settings.__dict__[db_name + '_db_port']
+            try:
+                _port = int(_port)
+            except:
+                if dbn == 'postgresql':
+                    _port = 5432
+                else:
+                    _port = 3306
 
-    if not all([_user, _pw, _server, _port, _name]):
-        return None
+            if not all([_user, _pw, _server, _port, _name]):
+                return None
 
-    try:
-        uri = '%s://%s:%s@%s:%d/%s' % (dbn, _user, _pw, _server, _port, _name)
-
-        if settings.backend == 'mysql':
-            uri += '?charset=utf8'
-
-            if _use_ssl:
-                uri += '&ssl_verify_cert=False'
+            uri = '%s://%s:%s@%s:%d/%s' % (dbn, _user, _pw, _server, _port, _name)
+            if settings.backend == 'mysql':
+                uri += '?charset=utf8'
+                if _use_ssl:
+                    uri += '&ssl_verify_cert=False'
 
         return create_engine(uri,
                              pool_size=settings.SQL_CONNECTION_POOL_SIZE,
                              pool_recycle=settings.SQL_CONNECTION_POOL_RECYCLE,
-                             max_overflow=settings.SQL_CONNECTION_MAX_OVERFLOW)
+                             max_overflow=settings.SQL_CONNECTION_MAX_OVERFLOW,
+                             **connect_options)
     except Exception as e:
         logger.error(f"Error while creating SQL connection: {repr(e)}")
         return None

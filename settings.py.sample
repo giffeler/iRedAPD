@@ -79,3 +79,9 @@ iredapd_db_password = 'password'
 # mailing list when `ALLOWED_LOGIN_MISMATCH_LIST_MEMBER = True`.
 mlmmjadmin_api_endpoint = 'http://127.0.0.1:7790/api'
 mlmmjadmin_api_auth_token = ''
+
+# Optional MySQL Unix sockets. See docs/unix-sockets.md.
+# Socket mode does not use TCP host/port or TCP TLS options.
+#vmail_db_socket = '/run/mysqld/mysqld.sock'
+#amavisd_db_socket = '/run/mysqld/mysqld.sock'
+#iredapd_db_socket = '/run/mysqld/mysqld.sock'
