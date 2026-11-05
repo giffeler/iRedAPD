@@ -41,3 +41,11 @@ def test_tools_tcp_tls_unchanged():
     settings.vmail_db_socket = ''
     settings.vmail_db_use_ssl = True
     assert tools.get_db_conn('vmail').keywords['ssl'] == {'ssl': True}
+
+
+def test_ldap_socket_keeps_driver_charset_default():
+    settings.backend = 'ldap'
+    with patch.object(utils, 'create_engine') as create:
+        utils.create_db_engine('amavisd')
+    assert 'charset' not in create.call_args.args[0].query
+    assert create.call_args.kwargs['connect_args'] == {'unix_socket': settings.amavisd_db_socket}

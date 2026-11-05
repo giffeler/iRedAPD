@@ -290,7 +290,7 @@ def create_db_engine(db_name):
                 return None
             uri = getattr(URL, 'create', URL)(
                 dbn, username=_user, password=_pw, database=_name,
-                query={'charset': 'utf8'})
+                query={'charset': 'utf8'} if settings.backend == 'mysql' else {})
             connect_options['connect_args'] = {'unix_socket': socket_path}
         else:
             _server = settings.__dict__[db_name + '_db_server']
